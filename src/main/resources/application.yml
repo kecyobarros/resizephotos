@@ -1,0 +1,23 @@
+server:
+  port: ${port:8090}
+
+spring:
+  data:
+    mongodb:
+      database: resize
+      host: localhost
+      port: 27017
+
+management:
+  security:
+    enabled: false
+
+endpoints:
+  shutdown:
+    enabled: false
+
+rest:
+  config:
+    connectTimeout: 300
+    readTimeout: 300
+    imagesRepository: http://54.152.221.29
