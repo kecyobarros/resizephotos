@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -29,5 +30,10 @@ public class ImagesGatewayImpl implements ImagesGateway {
     @Override
     public Optional<Image> findByNameAndResolution(final String name, final ResolutionType resolution){
         return repository.findByNameAndResolution(name, resolution);
+    }
+
+    @Override
+    public List<Image> findAll() {
+        return repository.findAll();
     }
 }

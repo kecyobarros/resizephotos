@@ -1,5 +1,6 @@
 server:
   port: ${port:8090}
+  context-path: /api/images
 
 spring:
   data:

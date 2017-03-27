@@ -21,6 +21,6 @@ public class ImageTest {
         assertThat(image.getName(), is(equalTo("testeName")));
         assertThat(new String(image.getBytes()), is(equalTo("testeBytes")));
         assertThat(image.getResolution(), is(equalTo(ResolutionType.LARGE)));
-        assertThat(image.builder().toString(), is(equalTo("Image.ImageBuilder(id=null, name=null, resolution=null, bytes=null)")));
+        assertThat(image.builder().toString(), is(equalTo("Image.ImageBuilder(id=null, name=null, resolution=null, bytes=null, version=null)")));
     }
 }

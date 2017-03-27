@@ -4,6 +4,7 @@ package br.com.kecyo.resizephotos.usescases.impl;
 import br.com.kecyo.resizephotos.config.rest.RestProperties;
 import br.com.kecyo.resizephotos.entities.Image;
 import br.com.kecyo.resizephotos.entities.ResolutionType;
+import br.com.kecyo.resizephotos.entities.json.ImageConverterDTO;
 import br.com.kecyo.resizephotos.entities.json.request.ImageDTO;
 import br.com.kecyo.resizephotos.entities.json.request.ImagesResponseDTO;
 import br.com.kecyo.resizephotos.gateways.ImagesGateway;
@@ -21,8 +22,10 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static javax.imageio.ImageIO.read;
@@ -39,6 +42,8 @@ public class ImagesProcessImpl implements Process {
     private final ImagesGateway imagesGateway;
 
     private final String FORMAT_DEFAULT = "JPEG";
+
+    private final ImageConverterDTO imageConvert;
 
     @Override
     public void process() {
@@ -104,5 +109,13 @@ public class ImagesProcessImpl implements Process {
     @Override
     public Optional<Image> findByNameAndResolution(final String name, final ResolutionType resolution) {
         return imagesGateway.findByNameAndResolution(name, resolution);
+    }
+
+    @Override
+    public List<br.com.kecyo.resizephotos.entities.json.response.ImageDTO> findAll() {
+        return  imagesGateway.findAll()
+                            .stream()
+                            .map(imageConvert::convert)
+                            .collect(Collectors.toList());
     }
 }

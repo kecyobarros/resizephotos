@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Getter
@@ -20,4 +21,7 @@ public class Image {
     private ResolutionType resolution;
 
     private byte[] bytes;
+
+    @Version
+    private Integer version;
 }

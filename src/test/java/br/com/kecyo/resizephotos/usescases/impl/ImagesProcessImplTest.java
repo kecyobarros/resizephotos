@@ -3,6 +3,7 @@ package br.com.kecyo.resizephotos.usescases.impl;
 import br.com.kecyo.resizephotos.config.rest.RestProperties;
 import br.com.kecyo.resizephotos.entities.Image;
 import br.com.kecyo.resizephotos.entities.ResolutionType;
+import br.com.kecyo.resizephotos.entities.json.ImageConverterDTO;
 import br.com.kecyo.resizephotos.entities.json.request.ImagesResponseDTO;
 import br.com.kecyo.resizephotos.gateways.ImagesGateway;
 import br.com.kecyo.resizephotos.usescases.Process;
@@ -41,12 +42,15 @@ public class ImagesProcessImplTest {
 
     private ObjectMapper mapper = new ObjectMapper();
 
+    private ImageConverterDTO converterDTO;
+
     @Before
     public void before(){
         restTemplate = mock(RestTemplate.class);
         restProperties = mock(RestProperties.class);
         imagesGateway = mock(ImagesGateway.class);
-        imagesProcess = new ImagesProcessImpl(restTemplate,restProperties,imagesGateway);
+        converterDTO = mock(ImageConverterDTO.class);
+        imagesProcess = new ImagesProcessImpl(restTemplate,restProperties,imagesGateway, converterDTO);
     }
 
     @Test
