@@ -50,11 +50,13 @@ public class ImagesProcessImpl implements Process {
         final Supplier<Stream<ResolutionType>> streamResolution = () -> Arrays.stream(ResolutionType.values());
 
         response.getImages().parallelStream().forEach(image -> {
+
+            byte[] imageBytes = getImage(image);
+
             streamResolution.get()
                     .parallel()
                     .filter(resolutionType -> !imagesGateway.existsByNameAndResolution(image.getName(), resolutionType))
                     .forEach( resolutionType -> {
-                                byte[] imageBytes = getImage(image);
                                 ByteArrayOutputStream imOutputStream = new ByteArrayOutputStream();
                                 try {
                                     resizeImage(resolutionType, imOutputStream, read(new ByteArrayInputStream(imageBytes)));
