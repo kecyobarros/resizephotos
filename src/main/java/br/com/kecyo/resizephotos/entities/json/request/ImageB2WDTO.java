@@ -11,7 +11,7 @@ import java.util.Optional;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ImageDTO implements Serializable{
+public class ImageB2WDTO implements Serializable{
 
     private String url;
 

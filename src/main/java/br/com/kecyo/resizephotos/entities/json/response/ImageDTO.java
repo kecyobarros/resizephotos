@@ -4,11 +4,15 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
 public class ImageDTO {
 
-    private String url;
+    private String name;
+
+    private List<String> urls;
 
 }

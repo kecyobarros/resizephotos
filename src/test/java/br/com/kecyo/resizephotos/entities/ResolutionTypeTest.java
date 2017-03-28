@@ -23,4 +23,9 @@ public class ResolutionTypeTest {
     public void testValues(){
         assertThat(ResolutionType.values().length, is(equalTo(3)));
     }
+
+    @Test
+    public void testValueOd(){
+        assertThat(ResolutionType.valueOf("SMALL"), is(equalTo(ResolutionType.SMALL)));
+    }
 }

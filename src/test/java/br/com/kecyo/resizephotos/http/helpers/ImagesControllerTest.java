@@ -3,6 +3,8 @@ package br.com.kecyo.resizephotos.http.helpers;
 
 import br.com.kecyo.resizephotos.entities.Image;
 import br.com.kecyo.resizephotos.entities.ResolutionType;
+import br.com.kecyo.resizephotos.entities.json.response.ImageDTO;
+import br.com.kecyo.resizephotos.entities.json.response.ImagesResponseDTO;
 import br.com.kecyo.resizephotos.usescases.Process;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,6 +12,8 @@ import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -57,6 +61,33 @@ public class ImagesControllerTest {
 
         verify(imagesProcess, times(1))
                 .findByNameAndResolution(anyString(), any(ResolutionType.class));
+
+        assertThat(result.getStatusCode(), is(equalTo(HttpStatus.NOT_FOUND)));
+    }
+
+    @Test
+    public void successFindAll(){
+
+        when(imagesProcess.findAll()).thenReturn(Arrays.asList(new ImageDTO("teste", Arrays.asList("url1", "url2"))));
+
+        ResponseEntity<ImagesResponseDTO> result = imagesController.findAll();
+
+        verify(imagesProcess, times(1)).findAll();
+
+        assertThat(result.getStatusCode(), is(equalTo(HttpStatus.OK)));
+        assertThat(result.getBody().getImages().size(), is(equalTo(1)));
+        assertThat(result.getBody().getImages().get(0).getName(), is(equalTo("teste")));
+        assertThat(result.getBody().getImages().get(0).getUrls().size(), is(equalTo(2)));
+    }
+
+    @Test
+    public void successFindAllIsEmpty(){
+
+        when(imagesProcess.findAll()).thenReturn(Arrays.asList());
+
+        ResponseEntity<ImagesResponseDTO> result = imagesController.findAll();
+
+        verify(imagesProcess, times(1)).findAll();
 
         assertThat(result.getStatusCode(), is(equalTo(HttpStatus.NOT_FOUND)));
     }

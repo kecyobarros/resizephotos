@@ -1,11 +1,11 @@
 server:
   port: ${port:8090}
-  context-path: /api/images
+  context-path: /resizephotos
 
 spring:
   data:
     mongodb:
-      database: resize
+      database: resize-photos
       host: localhost
       port: 27017
 
@@ -21,4 +21,6 @@ rest:
   config:
     connectTimeout: 300
     readTimeout: 300
-    imagesRepository: http://54.152.221.29
+    b2wRepository:
+      server: http://54.152.221.29
+      endpointConsult: /images.json

@@ -9,6 +9,8 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -76,6 +78,16 @@ public class ImagesGatewayImplTest {
         boolean result = imagesGatewayImpl.existsByNameAndResolution("teste", ResolutionType.LARGE);
 
         assertFalse(result);
+    }
+
+    @Test
+    public void successfindAll(){
+
+        when(repository.findAll()).thenReturn(Arrays.asList(Image.builder().build()));
+
+        List<Image> list = imagesGatewayImpl.findAll();
+
+        assertThat(list.size(), is(equalTo(1)));
     }
 
     @Test

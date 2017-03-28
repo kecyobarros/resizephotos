@@ -10,11 +10,11 @@ import java.util.List;
 
 @Getter
 @Setter
-public class ImagesResponseDTO implements Serializable{
+public class ImagesResponseB2WDTO implements Serializable{
 
-    private List<ImageDTO> images;
+    private List<ImageB2WDTO> images;
 
-    public ImagesResponseDTO(){
+    public ImagesResponseB2WDTO(){
        images = new ArrayList<>();
     }
 }

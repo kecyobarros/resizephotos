@@ -1,40 +1,40 @@
 package br.com.kecyo.resizephotos.usescases.impl;
 
-import br.com.kecyo.resizephotos.config.rest.RestProperties;
 import br.com.kecyo.resizephotos.entities.Image;
 import br.com.kecyo.resizephotos.entities.ResolutionType;
 import br.com.kecyo.resizephotos.entities.json.ImageConverterDTO;
-import br.com.kecyo.resizephotos.entities.json.request.ImagesResponseDTO;
+import br.com.kecyo.resizephotos.entities.json.request.ImageB2WDTO;
+import br.com.kecyo.resizephotos.entities.json.request.ImagesResponseB2WDTO;
+import br.com.kecyo.resizephotos.entities.json.response.ImageDTO;
 import br.com.kecyo.resizephotos.gateways.ImagesGateway;
+import br.com.kecyo.resizephotos.gateways.ImagesPartnerGateway;
+import br.com.kecyo.resizephotos.gateways.impl.ImagesB2WGatewayImpl;
 import br.com.kecyo.resizephotos.usescases.Process;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Files;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
+import org.mockito.ArgumentCaptor;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 public class ImagesProcessImplTest {
-
-    private RestTemplate restTemplate;
-
-    private RestProperties restProperties;
 
     private ImagesGateway imagesGateway;
 
@@ -44,13 +44,14 @@ public class ImagesProcessImplTest {
 
     private ImageConverterDTO converterDTO;
 
+    private ImagesPartnerGateway imagesB2WGateway;
+
     @Before
     public void before(){
-        restTemplate = mock(RestTemplate.class);
-        restProperties = mock(RestProperties.class);
+        imagesB2WGateway = mock(ImagesB2WGatewayImpl.class);
         imagesGateway = mock(ImagesGateway.class);
         converterDTO = mock(ImageConverterDTO.class);
-        imagesProcess = new ImagesProcessImpl(restTemplate,restProperties,imagesGateway, converterDTO);
+        imagesProcess = new ImagesProcessImpl(imagesGateway, converterDTO, imagesB2WGateway);
     }
 
     @Test
@@ -60,21 +61,18 @@ public class ImagesProcessImplTest {
 
         byte[] image = Files.toByteArray(new File(getUrl("image/b737_5.jpg")));
 
-        ImagesResponseDTO imagesResponseDTO = mapper.readValue(json, ImagesResponseDTO.class);
+        ImagesResponseB2WDTO imagesResponseB2WDTO = mapper.readValue(json, ImagesResponseB2WDTO.class);
 
-        ResponseEntity<ImagesResponseDTO> response = new ResponseEntity<>(imagesResponseDTO, HttpStatus.OK);
-
-        doReturn(response).when(restTemplate).getForEntity(anyString(), eq(ImagesResponseDTO.class));
-        doReturn(image).when(restTemplate).getForObject(anyString(), eq(byte[].class));
-        doReturn("http://54.152.221.29").when(restProperties).getImagesRepository();
+        doReturn(imagesResponseB2WDTO).when(imagesB2WGateway).getImagesResponse();
+        doReturn(image).when(imagesB2WGateway).getImage(any(ImageB2WDTO.class));
         doReturn(false).when(imagesGateway).existsByNameAndResolution(anyString(), any(ResolutionType.class));
 
         imagesProcess.process();
 
         verify(imagesGateway, times(30)).save(any(Image.class));
         verify(imagesGateway, times(30)).existsByNameAndResolution(anyString(), any(ResolutionType.class));
-        verify(restTemplate, times(10)).getForObject(anyString(), eq(byte[].class));
-        verify(restTemplate, times(1)).getForEntity(anyString(), eq(ImagesResponseDTO.class));
+        verify(imagesB2WGateway, times(10)).getImage(any(ImageB2WDTO.class));
+        verify(imagesB2WGateway, times(1)).getImagesResponse();
 
     }
 
@@ -82,20 +80,17 @@ public class ImagesProcessImplTest {
     public void imagesResponseIsEmpty() throws URISyntaxException, IOException {
         String json = Files.toString(new File(getUrl("json/images.json")), Charset.defaultCharset());;
 
-        ImagesResponseDTO imagesResponseDTO = mapper.readValue(json, ImagesResponseDTO.class);
-        imagesResponseDTO.getImages().clear();
+        ImagesResponseB2WDTO imagesResponseB2WDTO = mapper.readValue(json, ImagesResponseB2WDTO.class);
+        imagesResponseB2WDTO.getImages().clear();
 
-        ResponseEntity<ImagesResponseDTO> response = new ResponseEntity<>(imagesResponseDTO, HttpStatus.OK);
-
-        doReturn(response).when(restTemplate).getForEntity(anyString(), eq(ImagesResponseDTO.class));
-        doReturn("http://54.152.221.29").when(restProperties).getImagesRepository();
+        doReturn(imagesResponseB2WDTO).when(imagesB2WGateway).getImagesResponse();
 
         imagesProcess.process();
 
-        verify(restTemplate, times(1)).getForEntity(anyString(), eq(ImagesResponseDTO.class));
+        verify(imagesB2WGateway, times(1)).getImagesResponse();
         verify(imagesGateway, times(0)).save(any(Image.class));
         verify(imagesGateway, times(0)).existsByNameAndResolution(anyString(), any(ResolutionType.class));
-        verify(restTemplate, times(0)).getForObject(anyString(), eq(byte[].class));
+        verify(imagesB2WGateway, times(0)).getImage(any(ImageB2WDTO.class));
     }
 
     @Test
@@ -105,29 +100,18 @@ public class ImagesProcessImplTest {
 
         byte[] image = Files.toByteArray(new File(getUrl("image/b737_5.jpg")));
 
-        ImagesResponseDTO imagesResponseDTO = mapper.readValue(json, ImagesResponseDTO.class);
+        ImagesResponseB2WDTO imagesResponseB2WDTO = mapper.readValue(json, ImagesResponseB2WDTO.class);
 
-        ResponseEntity<ImagesResponseDTO> response = new ResponseEntity<>(imagesResponseDTO, HttpStatus.OK);
-
-        doReturn(response).when(restTemplate).getForEntity(anyString(), eq(ImagesResponseDTO.class));
-        doReturn(image).when(restTemplate).getForObject(anyString(), eq(byte[].class));
-        doReturn("http://54.152.221.29").when(restProperties).getImagesRepository();
+        doReturn(imagesResponseB2WDTO).when(imagesB2WGateway).getImagesResponse();
+        doReturn(image).when(imagesB2WGateway).getImage(any(ImageB2WDTO.class));
         doReturn(true).when(imagesGateway).existsByNameAndResolution(anyString(), any(ResolutionType.class));
 
         imagesProcess.process();
 
-        verify(restTemplate, times(1)).getForEntity(anyString(), eq(ImagesResponseDTO.class));
-        verify(restTemplate, times(10)).getForObject(anyString(), eq(byte[].class));
+        verify(imagesB2WGateway, times(1)).getImagesResponse();
+        verify(imagesB2WGateway, times(10)).getImage(any(ImageB2WDTO.class));
         verify(imagesGateway, times(30)).existsByNameAndResolution(anyString(), any(ResolutionType.class));
         verify(imagesGateway, times(0)).save(any(Image.class));
-    }
-
-
-    @Test(expected = UnknownHostException.class)
-    public void errorHost() throws URISyntaxException, IOException {
-        doThrow(UnknownHostException.class).when(restTemplate).getForEntity(anyString(), eq(ImagesResponseDTO.class));
-        doReturn("http://54.152.221.29").when(restProperties).getImagesRepository();
-        imagesProcess.process();
     }
 
     @Test
@@ -153,6 +137,37 @@ public class ImagesProcessImplTest {
         verify(imagesGateway, times(0)).save(any(Image.class));
 
         assertFalse(result.isPresent());
+
+    }
+
+    @Test
+    public void testFindAll() throws URISyntaxException, IOException {
+        ArgumentCaptor<Map.Entry> argumentCaptor = ArgumentCaptor.forClass(Map.Entry.class);
+
+        doReturn(getListImage()).when(imagesGateway).findAll();
+
+        doReturn(new ImageDTO("teste1", Arrays.asList("url1","url2","url3"))).when(converterDTO).convert(any());
+
+        imagesProcess.findAll();
+
+        verify(converterDTO).convert(argumentCaptor.capture());
+
+        Map.Entry resultArgument = argumentCaptor.getValue();
+
+        assertNotNull(resultArgument);
+        assertThat(resultArgument.getKey(), is(equalTo("teste1")));
+        List<Image> listImage = (List<Image>) resultArgument.getValue();
+        assertThat(listImage.size(), is(equalTo(3)));
+
+    }
+
+    private List<Image> getListImage(){
+        return Arrays.asList(
+                Image.builder().name("teste1").resolution(ResolutionType.SMALL).build(),
+                Image.builder().name("teste1").resolution(ResolutionType.MEDIUM).build(),
+                Image.builder().name("teste1").resolution(ResolutionType.LARGE).build());
+
+
 
     }
 

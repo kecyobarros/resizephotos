@@ -1,21 +1,19 @@
 package br.com.kecyo.resizephotos.usescases.impl;
 
 
-import br.com.kecyo.resizephotos.config.rest.RestProperties;
 import br.com.kecyo.resizephotos.entities.Image;
 import br.com.kecyo.resizephotos.entities.ResolutionType;
 import br.com.kecyo.resizephotos.entities.json.ImageConverterDTO;
-import br.com.kecyo.resizephotos.entities.json.request.ImageDTO;
-import br.com.kecyo.resizephotos.entities.json.request.ImagesResponseDTO;
+import br.com.kecyo.resizephotos.entities.json.request.ImagesResponseB2WDTO;
+import br.com.kecyo.resizephotos.entities.json.response.ImageDTO;
 import br.com.kecyo.resizephotos.gateways.ImagesGateway;
+import br.com.kecyo.resizephotos.gateways.ImagesPartnerGateway;
 import br.com.kecyo.resizephotos.usescases.Process;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -23,6 +21,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -35,28 +34,26 @@ import static javax.imageio.ImageIO.read;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class ImagesProcessImpl implements Process {
 
-    private final RestTemplate restTemplate;
-
-    private final RestProperties restProperties;
+    private final String FORMAT_DEFAULT = "JPEG";
 
     private final ImagesGateway imagesGateway;
 
-    private final String FORMAT_DEFAULT = "JPEG";
-
     private final ImageConverterDTO imageConvert;
+
+    private final ImagesPartnerGateway imagesB2WGateway;
 
     @Override
     public void process() {
 
         log.info("Iniciando carga de imagens");
 
-        final ImagesResponseDTO response = getImagesResponse();
+        final ImagesResponseB2WDTO response = imagesB2WGateway.getImagesResponse();
 
         final Supplier<Stream<ResolutionType>> streamResolution = () -> Arrays.stream(ResolutionType.values());
 
         response.getImages().parallelStream().forEach(image -> {
 
-            byte[] imageBytes = getImage(image);
+            byte[] imageBytes = imagesB2WGateway.getImage(image);
 
             streamResolution.get()
                     .parallel()
@@ -74,19 +71,6 @@ public class ImagesProcessImpl implements Process {
         });
 
         log.info("Carga finalizada!!!");
-    }
-
-    private byte[] getImage(ImageDTO image) {
-        return restTemplate.getForObject(image.getUrl(), byte[].class);
-    }
-
-    private ImagesResponseDTO getImagesResponse() {
-        ResponseEntity<ImagesResponseDTO> forEntity =
-                restTemplate.getForEntity(restProperties.getImagesRepository()
-                        .concat("/images.json"),
-                ImagesResponseDTO.class);
-
-        return forEntity.getBody();
     }
 
     private void resizeImage(final ResolutionType resolutionType, final ByteArrayOutputStream imageOutputStream,
@@ -112,10 +96,15 @@ public class ImagesProcessImpl implements Process {
     }
 
     @Override
-    public List<br.com.kecyo.resizephotos.entities.json.response.ImageDTO> findAll() {
-        return  imagesGateway.findAll()
-                            .stream()
-                            .map(imageConvert::convert)
-                            .collect(Collectors.toList());
+    public List<ImageDTO> findAll() {
+
+        Map<String, List<Image>> grouping = imagesGateway.findAll()
+                                            .stream()
+                                            .collect(Collectors.groupingBy(Image::getName));
+
+
+        return grouping.entrySet().stream()
+                                .map(imageConvert::convert)
+                                .collect(Collectors.toList());
     }
 }

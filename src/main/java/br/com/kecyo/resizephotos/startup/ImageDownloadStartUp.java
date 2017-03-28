@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-public class ImageDowloadStartUp {
+public class ImageDownloadStartUp {
 
     private final Process imagesProcess;
 

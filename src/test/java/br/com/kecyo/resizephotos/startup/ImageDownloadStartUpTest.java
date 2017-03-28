@@ -9,15 +9,15 @@ import org.mockito.Mockito;
 
 import static org.mockito.Mockito.times;
 
-public class ImageDowloadStartUpTest {
+public class ImageDownloadStartUpTest {
 
     private Process imagesProcess;
-    private ImageDowloadStartUp startUp;
+    private ImageDownloadStartUp startUp;
 
     @Before
     public void before(){
         imagesProcess = Mockito.mock(ImagesProcessImpl.class);
-        startUp = new ImageDowloadStartUp(imagesProcess);
+        startUp = new ImageDownloadStartUp(imagesProcess);
     }
 
     @Test
