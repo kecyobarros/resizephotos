@@ -3,6 +3,14 @@
 Application responsible for resizing in three formats:
 SMALL (320x240), MEDIUM (384x288), LARGE (640x480)
 
+# Frameworks used:
+- Spring (Boot, Data, actuator)
+- Lombok
+- Swagger
+- Mockito
+- Thumbnailator (Resize pictures)
+- Jacoco (Coverage of tests)
+
 # To Execute
 A compose file has been made available to create the mongoDB container.
 
